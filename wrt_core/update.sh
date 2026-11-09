@@ -86,7 +86,7 @@ stage_pre_install_source_fixes() {
     update_tcping
     add_ax6600_led
     set_custom_task
-    apply_passwall_tweaks
+    # apply_passwall_tweaks  # 保持 26.11.3-1 官方行为，不注入 smartdns 联动补丁
     update_nss_pbuf_performance
     set_build_signature
     update_nss_diag
