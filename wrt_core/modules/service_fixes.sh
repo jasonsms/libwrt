@@ -43,24 +43,10 @@ EOF
 }
 
 install_opkg_distfeeds() {
-    local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
-    local distfeeds_list="$emortal_def_dir/files/99-distfeeds.list"
-
-    if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_list" ]; then
-        cat <<'EOF' >"$distfeeds_list"
-https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/base
-https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/luci
-https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/packages
-https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/routing
-https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/telephony
-EOF
-
-        sed -i "/define Package\/default-settings\/install/a\\
-\\t\$(INSTALL_DIR) \$(1)/etc/apk/repositories.d\\n\\
-\\t\$(INSTALL_DATA) ./files/99-distfeeds.list \$(1)/etc/apk/repositories.d/distfeeds.list\n" "$emortal_def_dir/Makefile"
-    fi
+    # apk 构建下 base-files 会按 feeds.conf 自动生成
+    # /etc/apk/repositories.d/distfeeds.list，此处不再注入，避免文件冲突
+    return 0
 }
-
 
 update_script_priority() {
     local qca_drv_path="$BUILD_DIR/package/feeds/nss_packages/qca-nss-drv/files/qca-nss-drv.init"
