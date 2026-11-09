@@ -42,10 +42,21 @@ EOF
     chmod +x "$sh_dir/custom_task"
 }
 
-install_opkg_distfeeds() {
-    # apk 构建下 base-files 会按 feeds.conf 自动生成
-    # /etc/apk/repositories.d/distfeeds.list，此处不再注入，避免文件冲突
-    return 0
+install_opkg_feeds() {
+    # 上游生成的 25.12-SNAPSHOT opkg 源已 404；24.10 源由 ImmortalWrt 发布密钥签名，
+    # 镜像未带该公钥时 opkg update 会验签失败，因此固定源并补齐公钥。
+    local src_dir="$BASE_PATH/patches/opkg"
+    local dest_dir="$BUILD_DIR/files/etc/opkg"
+
+    mkdir -p "$dest_dir/keys" || return 1
+
+    if ! install -m 0644 "$src_dir/distfeeds.conf" "$dest_dir/distfeeds.conf" ||
+        ! install -m 0644 "$src_dir"/keys/* "$dest_dir/keys/"; then
+        echo "错误：写入 opkg 软件源配置或签名公钥失败" >&2
+        return 1
+    fi
+
+    echo "已内置 24.10 软件源配置与签名公钥到 $dest_dir"
 }
 
 update_script_priority() {
