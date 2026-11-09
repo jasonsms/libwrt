@@ -20,8 +20,8 @@ sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_e
 ## 3. 获取源码
 
 ```bash
-git clone https://github.com/ZqinKing/wrt_release.git
-cd wrt_release
+git clone https://github.com/jasonsms/libwrt.git
+cd libwrt
 ```
 
 ## 4. 编译用法
@@ -44,17 +44,17 @@ cd wrt_release
 
 | 模式 | 命令示例 | 说明 |
 | --- | --- | --- |
-| 默认 | `./build.sh x64_immwrt` | 拉取源码、应用配置、下载依赖并完整编译固件。 |
-| `debug` | `./build.sh x64_immwrt debug` | 执行到 `make defconfig` 后停止，用于检查配置，不产出固件。 |
-| `container` | `./build.sh x64_immwrt container` | 使用 Docker 容器执行完整构建，减少本机环境差异。 |
-| `container_debug` | `./build.sh x64_immwrt container_debug` | 在 Docker 容器中执行 debug 流程并进入交互 shell。 |
-| `config_preview` | `./build.sh x64_immwrt config_preview` | 只预览配置片段组合，不拉取源码、不写构建目录。 |
+| 默认 | `./build.sh jdcloud_ipq60xx_libwrt` | 拉取源码、应用配置、下载依赖并完整编译固件。 |
+| `debug` | `./build.sh jdcloud_ipq60xx_libwrt debug` | 执行到 `make defconfig` 后停止，用于检查配置，不产出固件。 |
+| `container` | `./build.sh jdcloud_ipq60xx_libwrt container` | 使用 Docker 容器执行完整构建，减少本机环境差异。 |
+| `container_debug` | `./build.sh jdcloud_ipq60xx_libwrt container_debug` | 在 Docker 容器中执行 debug 流程并进入交互 shell。 |
+| `config_preview` | `./build.sh jdcloud_ipq60xx_libwrt config_preview` | 只预览配置片段组合，不拉取源码、不写构建目录。 |
 
 可通过环境变量临时追加或移除配置片段：
 
 ```bash
-ADD_CONFIG_FRAGMENTS=docker_deps ./build.sh gemtek_w1701k_immwrt config_preview
-REMOVE_CONFIG_FRAGMENTS=proxy ./build.sh x64_immwrt config_preview
+ADD_CONFIG_FRAGMENTS=docker_deps ./build.sh jdcloud_ipq60xx_libwrt config_preview
+REMOVE_CONFIG_FRAGMENTS=nss ./build.sh jdcloud_ipq60xx_libwrt config_preview
 ```
 
 GitHub Actions 的手动构建也提供 `add_fragments` 与 `remove_fragments` 输入项，语义与上述环境变量一致。
@@ -67,32 +67,13 @@ GitHub Actions 的手动构建也提供 `add_fragments` 与 `remove_fragments` �
 
 | 厂商 / 平台 | 设备 | 配置名 |
 | --- | --- | --- |
-| 京东云 | 雅典娜(02)、亚瑟(01)、太乙(07)、AX5(JDC版) | `jdcloud_ipq60xx_immwrt` |
-| 京东云 | 雅典娜(02)、亚瑟(01)、太乙(07)、AX5(JDC版) - LiBwrt | `jdcloud_ipq60xx_libwrt` |
-| 京东云 | 百里 / AX6000 | `jdcloud_ax6000_immwrt` |
-| 阿里云 | AP8220 | `aliyun_ap8220_immwrt` |
-| 阿里云 | AP8220 - LiBwrt | `aliyun_ap8220_libwrt` |
-| Linksys | MX4200v1、MX4200v2、MX4300 | `linksys_mx4x00_libwrt` |
-| Link | NN6000v2 | `link_nn6000v2_immwrt` |
-| 奇虎 | 360v6 | `qihoo_360v6_immwrt` |
-| 红米 | AX5 | `redmi_ax5_immwrt` |
-| 红米 | AX6 | `redmi_ax6_immwrt` |
-| 红米 | AX6 - LiBwrt | `redmi_ax6_libwrt` |
-| CMCC（中国移动） | RAX3000M | `cmcc_rax3000m_immwrt` |
-| 斐讯 | N1 | `n1_immwrt` |
-| 兆能 | M2 | `zn_m2_immwrt` |
-| 兆能 | M2 - LiBwrt | `zn_m2_libwrt` |
-| Gemtek | W1701K | `gemtek_w1701k_immwrt` |
-| SuperGateway | S20M | `supergateway_s20m_immwrt` |
-| Nokia | XG-040G-MD UBI | `nokia_040g_immwrt` |
-| x86 | X64 | `x64_immwrt` |
+| 京东云 | 太乙 RE-CS-07 (IPQ6018) - LiBwrt | `jdcloud_ipq60xx_libwrt` |
 
 示例：
 
 ```bash
-./build.sh jdcloud_ipq60xx_immwrt
-./build.sh aliyun_ap8220_libwrt
-./build.sh redmi_ax6_libwrt container
+./build.sh jdcloud_ipq60xx_libwrt
+./build.sh jdcloud_ipq60xx_libwrt config_preview
 ```
 
 ## 6. 配置来源
@@ -102,7 +83,7 @@ GitHub Actions 的手动构建也提供 `add_fragments` 与 `remove_fragments` �
 - `wrt_core/compilecfg/<设备配置名>.ini`：定义源码仓库、分支、构建目录、默认配置片段、可选提交哈希和容器 SDK 镜像。
 - `wrt_core/deconfig/<设备配置名>.config`：定义 OpenWrt 目标平台、设备和软件包配置。
 
-不同设备会使用不同上游源码，例如 `VIKINGYFY/immortalwrt`、`immortalwrt/immortalwrt`、`LiBwrt/openwrt-6.x`、`padavanonly/immortalwrt-mt798x` 或本仓库维护的特定分支。`BUILD_TARGET_SDK` 未配置时，容器构建默认使用 `immortalwrt/sdk:openwrt-25.12`。
+本仓库只保留一套上游：`LiBwrt/openwrt-6.x` 的 `25.12-nss` 分支。`BUILD_TARGET_SDK` 未配置时，容器构建默认使用 `immortalwrt/sdk:openwrt-25.12`。
 
 构建时会按顺序组合配置：
 
@@ -110,11 +91,7 @@ GitHub Actions 的手动构建也提供 `add_fragments` 与 `remove_fragments` �
 2. `compile_base.config`
 3. `wrt_core/deconfig/fragments/<name>.config` 中的有效配置片段
 
-默认片段由 `compilecfg/*.ini` 的 `CONFIG_FRAGMENTS` 指定：
-
-- 所有设备默认包含 `proxy`。
-- IPQ60xx / IPQ807x 设备默认额外包含 `nss`。
-- 只有已显式选择 Dockerman 或明确适合运行 Docker 的设备默认包含 `docker_deps`，用于预置手动安装 Docker 所需的运行依赖，避免 NAND 空间紧张或无 USB 设备被默认加入 Docker 依赖。
+默认片段由 `compilecfg/*.ini` 的 `CONFIG_FRAGMENTS` 指定，当前设备只启用了 `nss`。`fragments/` 下另有 `proxy`（PassWall 相关）与 `docker_deps`（Docker 运行依赖）两个可选片段，需要时用 `ADD_CONFIG_FRAGMENTS` 追加。
 
 `ADD_CONFIG_FRAGMENTS` 会在默认片段后追加，`REMOVE_CONFIG_FRAGMENTS` 会从最终片段中移除对应配置片段。移除只表示“不追加这个 fragment”，不会反向修改设备 `.config` 或 `compile_base.config` 中已经写明的配置。
 
