@@ -42,27 +42,22 @@ EOF
     chmod +x "$sh_dir/custom_task"
 }
 
-
 install_opkg_distfeeds() {
     local emortal_def_dir="$BUILD_DIR/package/emortal/default-settings"
-    local distfeeds_conf="$emortal_def_dir/files/99-distfeeds.conf"
+    local distfeeds_list="$emortal_def_dir/files/99-distfeeds.list"
 
-    if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_conf" ]; then
-        cat <<'EOF' >"$distfeeds_conf"
-src/gz openwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/base/
-src/gz openwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/luci/
-src/gz openwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/packages/
-src/gz openwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/routing/
-src/gz openwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_cortex-a53/telephony/
+    if [ -d "$emortal_def_dir" ] && [ ! -f "$distfeeds_list" ]; then
+        cat <<'EOF' >"$distfeeds_list"
+https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/base
+https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/luci
+https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/packages
+https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/routing
+https://downloads.immortalwrt.org/releases/25.12.0/packages/aarch64_cortex-a53/telephony
 EOF
 
         sed -i "/define Package\/default-settings\/install/a\\
-\\t\$(INSTALL_DIR) \$(1)/etc\\n\
-\t\$(INSTALL_DATA) ./files/99-distfeeds.conf \$(1)/etc/99-distfeeds.conf\n" $emortal_def_dir/Makefile
-
-        sed -i "/exit 0/i\\
-[ -f \'/etc/99-distfeeds.conf\' ] && mv \'/etc/99-distfeeds.conf\' \'/etc/opkg/distfeeds.conf\'\n\
-sed -ri \'/check_signature/s@^[^#]@#&@\' /etc/opkg.conf\n" $emortal_def_dir/files/99-default-settings
+\\t\$(INSTALL_DIR) \$(1)/etc/apk/repositories.d\\n\\
+\\t\$(INSTALL_DATA) ./files/99-distfeeds.list \$(1)/etc/apk/repositories.d/distfeeds.list\n" "$emortal_def_dir/Makefile"
     fi
 }
 
@@ -129,14 +124,15 @@ fix_openssl_ktls() {
     fi
 }
 
-
 fix_opkg_check() {
     local patch_file="$BASE_PATH/patches/001-fix-provides-version-parsing.patch"
     local opkg_dir="$BUILD_DIR/package/system/opkg"
+    [ -d "$opkg_dir" ] || return 0
     if [ -f "$patch_file" ]; then
         install -Dm644 "$patch_file" "$opkg_dir/patches/001-fix-provides-version-parsing.patch"
     fi
 }
+
 
 
 netfilter_kmod_clash_include_fixed() {
