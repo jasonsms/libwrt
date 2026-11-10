@@ -5,7 +5,6 @@ CORE_XRAY_ARCHIVE="xray-26.11.9-linux-arm64-v8a.tar.gz"
 CORE_SINGBOX_ARCHIVE="sing-box-1.14.4-linux-arm64-musl.tar.gz"
 CORE_SINGBOX_DIR="sing-box-1.14.4-linux-arm64-musl"
 
-
 install_custom_cores() {
     local cores_dir="$BASE_PATH/patches/cores"
     local dest_dir="$BUILD_DIR/files"
@@ -25,16 +24,38 @@ install_custom_cores() {
         return 1
     fi
 
-    mkdir -p "$dest_dir/usr/bin" "$dest_dir/usr/share/v2ray"
+    if [ ! -f "$tmp_dir/xray" ] || [ ! -f "$tmp_dir/$CORE_SINGBOX_DIR/sing-box" ]; then
+        rm -rf "$tmp_dir"
+        echo "错误：归档内未找到 xray 或 sing-box，请检查解压目录结构" >&2
+        return 1
+    fi
+
+    mkdir -p "$dest_dir/usr/bin" \
+        "$dest_dir/usr/share/xray" \
+        "$dest_dir/usr/share/v2ray"
 
     if ! install -m 0755 "$tmp_dir/xray" "$dest_dir/usr/bin/xray" ||
-        ! install -m 0755 "$tmp_dir/$CORE_SINGBOX_DIR/sing-box" "$dest_dir/usr/bin/sing-box" ||
-        ! install -m 0644 "$tmp_dir/geoip.dat" "$tmp_dir/geosite.dat" "$dest_dir/usr/share/v2ray/"; then
+        ! install -m 0755 "$tmp_dir/$CORE_SINGBOX_DIR/sing-box" "$dest_dir/usr/bin/sing-box"; then
         rm -rf "$tmp_dir"
         echo "错误：写入内核二进制失败" >&2
         return 1
     fi
 
+    if [ -f "$tmp_dir/geoip.dat" ] && [ -f "$tmp_dir/geosite.dat" ]; then
+        if ! install -m 0644 "$tmp_dir/geoip.dat" "$tmp_dir/geosite.dat" "$dest_dir/usr/share/xray/"; then
+            rm -rf "$tmp_dir"
+            echo "错误：写入 geo 数据到 /usr/share/xray 失败" >&2
+            return 1
+        fi
+        if ! install -m 0644 "$tmp_dir/geoip.dat" "$tmp_dir/geosite.dat" "$dest_dir/usr/share/v2ray/"; then
+            rm -rf "$tmp_dir"
+            echo "错误：写入 geo 数据到 /usr/share/v2ray 失败" >&2
+            return 1
+        fi
+    else
+        echo "警告：归档内未找到 geoip.dat / geosite.dat，跳过 geo 数据内置" >&2
+    fi
+
     rm -rf "$tmp_dir"
-    echo "已内置 Xray 与 Sing-Box 二进制及 geo 数据到 $dest_dir"
+    echo "已内置 Xray 与 Sing-Box 二进制，geo 数据写入 /usr/share/xray 与 /usr/share/v2ray"
 }
