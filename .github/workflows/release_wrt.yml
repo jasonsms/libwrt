@@ -79,7 +79,7 @@ jobs:
         run: ./wrt_core/pre_clone_action.sh ${{ inputs.model }}
 
       - name: Cache Dependencies
-        uses: actions/cache@v6.1.0
+        uses: actions/cache/restore@v6.1.0
         with:
           path: |
             ./action_build/.ccache
@@ -145,6 +145,16 @@ jobs:
           echo "========cache status========"
           echo "ccache: $(du -sh ./action_build/.ccache | cut -f 1)"
           echo "staging: $(du -sh ./action_build/staging_dir | cut -f 1)"
+
+      - name: Save Cache
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: |
+            ./action_build/.ccache
+            ./action_build/staging_dir
+          key: ${{ matrix.os }}-${{ inputs.model }}-${{ hashFiles('**/repo_flag') }}-${{ env.ADD_CONFIG_FRAGMENTS_KEY }}-${{ env.REMOVE_CONFIG_FRAGMENTS_KEY }}-${{ env.BUILD_DATE }}
 
       - name: Machine Information (Post-build)
         run: |
