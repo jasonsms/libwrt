@@ -22,8 +22,11 @@ set_custom_task() {
 START=99
 
 boot() {
+    # 关闭 f2fs 后台 GC，减少 eMMC 写入（仅 f2fs overlay 生效）
+    grep -q " /overlay f2fs " /proc/mounts && mount -o remount,background_gc=off /overlay
+
+    # 清理旧配置遗留的 drop_caches 定时任务（不再重新添加）
     sed -i '/drop_caches/d' /etc/crontabs/root
-    echo "15 3 * * * sync && echo 3 > /proc/sys/vm/drop_caches" >>/etc/crontabs/root
 
     sed -i '/wireguard_watchdog/d' /etc/crontabs/root
 
