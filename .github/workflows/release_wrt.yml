@@ -130,6 +130,27 @@ jobs:
           REMOVE_CONFIG_FRAGMENTS: ${{ inputs.remove_fragments }}
         run: ./build.sh ${{ inputs.model }}
 
+      - name: Dump kmod deps (on failure)
+        if: failure()
+        run: |
+          echo "=========== search Packages index ==========="
+          for P in ./action_build/staging_dir/packages/*/Packages \
+                   ./action_build/bin/targets/*/*/packages/Packages; do
+            [ -f "$P" ] && echo "FOUND: $P ($(wc -l < "$P") lines)"
+          done
+          P=./action_build/staging_dir/packages/qualcommax/Packages
+          for pkg in kernel kmod-bonding kmod-qca-nss-ecm; do
+            echo "===== $pkg ====="
+            [ -f "$P" ] && awk -v p="$pkg" '$0=="Package: "p{f=1} f&&/^$/{exit} f' "$P"
+          done
+          echo "===== ipk files ====="
+          ls -l ./action_build/bin/targets/*/*/packages/kmod-bonding_* \
+                ./action_build/bin/targets/*/*/packages/kmod-qca-nss-ecm_* 2>/dev/null || echo "no ipk matched"
+          echo "===== install list ====="
+          wc -l ./action_build/tmp/opkg_install_list 2>/dev/null || true
+          grep -E "kmod-bonding|kmod-qca-nss-ecm" ./action_build/tmp/opkg_install_list 2>/dev/null || true
+
+
       - name: Get Kernel Verion
         run: |
           # 获取内核版本
